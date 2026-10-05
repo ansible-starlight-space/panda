@@ -1,5 +1,65 @@
 # @pandacss/compiler-wasm
 
+## 2.1.2
+
+### Patch Changes
+
+- 7f36e78: Fixed styles going missing in Astro, Svelte and Vue files when the markup uses syntax Panda didn't read
+  correctly, such as a regex or comment inside an expression. `css()` calls in Astro client `<script>` blocks now get
+  their CSS too.
+- d941e4a: Fixed a boolean utility's `false` value, like `md: { srOnly: false }`, missing from the stylesheet.
+- b8e2b5b: Fixed recipe rules being emitted twice when both your app and a `designSystem` package use the same recipe.
+- 30465d3: `panda` starts faster. Installed presets load with Node instead of being re-bundled on every run, and a build
+  no longer loads the code for `init` and `debug`.
+
+  - `@pandacss/preset-base`, `@pandacss/preset-panda` and `@pandacss/preset-typography` are now ESM-only, like the rest
+    of v2.
+  - Generated `styled-system/patterns` files are reformatted once.
+
+- d8c494c: Fix `token.var()` references for token keys containing dots, such as `spacing.1.5`, so they match the emitted
+  CSS variables, including when hashing is enabled.
+
+  Restore v1 behavior for negative spacing: `token.var()` returns the original positive variable, while `token()` keeps
+  returning the negated value.
+
+  Emoji in token keys are no longer escaped in CSS variable names, matching v1.
+
+- 145f6d2: Fixed an issue where a color with an opacity modifier and `!important` or `!`, like
+  `brand.500/60 !important`, warned about an invalid opacity modifier.
+- 164508e: Style helpers can now destructure their parameters, declare local `const` / `let` values, spread objects, and
+  call other helpers, and Panda still extracts their styles. A helper Panda can't evaluate now warns with
+  `pure_helper_unevaluated` instead of silently skipping its styles.
+
+  Default values of parameters and destructured props, like `function Button({ size = 'md' })`, generate CSS again.
+
+- b8e2b5b: Recipe CSS is now grouped like atomic CSS, with shared media queries and merged rules, for smaller output
+  that matches v1's ordering.
+- 802eb61: Fixed slot recipes overriding recipe variants in minified production builds, like Vite 8's default build.
+- 3f41f62: In recipes and `globalCss`, the later key now wins when two keys set the same CSS property, as in v1.
+
+  - Shorthands and utilities follow key order: `{ bgColor: 'red', backgroundColor: 'blue' }` gives `blue`.
+  - `textStyle`, `layerStyle` and `animationStyle` expand in place, so a property must come after them to override them:
+
+    ```ts
+    { color: 'blue', textStyle: 'body' } // the text style's color
+    { textStyle: 'body', color: 'blue' } // blue
+    ```
+
+  - Design systems need to rerun `panda lib` to regenerate their build info.
+
+- 22ba83d: You can pass a readonly `slots` array to `sva()` again. A `slots` array declared `as const` no longer fails
+  with TS4104, so you can reuse it in your own types:
+
+  ```ts
+  const slots = ['root', 'label'] as const
+  type Slot = (typeof slots)[number]
+
+  const field = sva({ slots, base: { root: { color: 'red' }, label: { color: 'blue' } } })
+  ```
+
+- @pandacss/compiler-shared@2.1.2
+  - @pandacss/types@2.1.2
+
 ## 2.1.1
 
 ### Patch Changes
